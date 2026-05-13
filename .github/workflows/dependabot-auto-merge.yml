@@ -1,0 +1,41 @@
+name: Dependabot auto-merge
+
+# Auto-merge ALLEEN patch-bumps van Dependabot zodra CI groen is.
+# Minor en major bumps blijven handmatig — review en mergen via GitHub UI.
+#
+# Scope-keuze: anonimizer-browser draait volledig client-side maar
+# verwerkt wel documenten met PII in de browser. Patch-only beperkt het
+# oppervlak tot bugfixes binnen bestaande API. Cooldown van 7 dagen
+# (zie dependabot.yml) vangt snel-ontdekte supply-chain attacks.
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Approve PR
+        if: steps.meta.outputs.update-type == 'version-update:semver-patch'
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable auto-merge
+        if: steps.meta.outputs.update-type == 'version-update:semver-patch'
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Verwijder persoonsgegevens uit documenten — volledig in de browser, geen server." />
+    <title>anonimizer — anonimiseer documenten in je browser</title>
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <h1>anonimizer</h1>
+        <p class="tagline">Verwijder persoonsgegevens uit documenten — volledig in je browser, geen server.</p>
+      </div>
+    </header>
+    <main id="app" class="container"></main>
+    <footer class="site-footer">
+      <div class="container">
+        <p>
+          Open source —
+          <a href="https://github.com/security-commons-nl/anonimizer-browser">bijdragen</a>
+          ·
+          <a href="https://github.com/security-commons-nl/anonimizer-browser/issues/new/choose">probleem melden</a>
+        </p>
+        <p class="privacy-note">
+          Documenten verlaten je browser nooit, behalve naar de Mistral-API voor entiteit-detectie.
+          Geen server, geen logging, geen cookies.
+        </p>
+      </div>
+    </footer>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
