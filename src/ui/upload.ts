@@ -1,13 +1,16 @@
 import { detect } from "../lib/detector";
 import { apply } from "../lib/replacer";
 import { toMarkdown } from "../lib/converter";
-import { makeMistralChat, LlmError } from "../lib/llm";
+import { makeChat, LlmError } from "../lib/llm";
+import { PROXY_URL } from "../lib/config";
 import { parseStandaardYaml } from "./standaard";
 import {
   loadApiKey,
   loadStandaard,
+  loadUseByok,
   saveApiKey,
   saveStandaard,
+  saveUseByok,
   type AppState,
 } from "./state";
 
@@ -23,6 +26,7 @@ export function renderUpload(
 ): void {
   const apiKey = loadApiKey();
   const standaard = loadStandaard();
+  const useByok = loadUseByok();
 
   root.innerHTML = `
     <div class="card">
@@ -33,15 +37,25 @@ export function renderUpload(
                accept=".pdf,.docx,.pptx,.xlsx,.md,.txt,.html,.htm" required />
         <p class="help">PDF, Word, PowerPoint, Excel, Markdown of HTML. Max 50&nbsp;MB.</p>
 
-        <label for="api_key">Mistral API-sleutel</label>
-        <input id="api_key" name="api_key" type="password"
-               value="${escapeAttr(apiKey)}"
-               placeholder="Plak hier je Mistral API-key" autocomplete="off" required />
-        <p class="help">
-          Wordt alleen bewaard in deze browsersessie en gestuurd naar
-          api.mistral.ai. Krijg er een op
-          <a href="https://console.mistral.ai/" target="_blank" rel="noopener">console.mistral.ai</a>.
-        </p>
+        <div class="byok-toggle">
+          <label class="inline-toggle">
+            <input id="use_byok" type="checkbox" ${useByok ? "checked" : ""} />
+            <span>Ik wil mijn eigen Mistral API-key gebruiken</span>
+          </label>
+          <p class="help" id="byok-help">${byokHelpText(useByok)}</p>
+        </div>
+
+        <div id="byok-fields" style="${useByok ? "" : "display:none"}">
+          <label for="api_key">Mistral API-sleutel</label>
+          <input id="api_key" name="api_key" type="password"
+                 value="${escapeAttr(apiKey)}"
+                 placeholder="Plak hier je Mistral API-key" autocomplete="off" />
+          <p class="help">
+            Wordt alleen bewaard in deze browsersessie en gestuurd naar
+            <code>api.mistral.ai</code>. Krijg er een op
+            <a href="https://console.mistral.ai/" target="_blank" rel="noopener">console.mistral.ai</a>.
+          </p>
+        </div>
 
         <label for="standaard">Standaard-vervangingen (optioneel, YAML)</label>
         <textarea id="standaard" name="standaard" rows="4"
@@ -60,19 +74,28 @@ export function renderUpload(
 
   const form = root.querySelector<HTMLFormElement>("#upload-form")!;
   const submitBtn = root.querySelector<HTMLButtonElement>("#submit-btn")!;
+  const byokCheckbox = root.querySelector<HTMLInputElement>("#use_byok")!;
+  const byokFields = root.querySelector<HTMLDivElement>("#byok-fields")!;
+  const byokHelp = root.querySelector<HTMLParagraphElement>("#byok-help")!;
+
+  byokCheckbox.addEventListener("change", () => {
+    const on = byokCheckbox.checked;
+    byokFields.style.display = on ? "" : "none";
+    byokHelp.textContent = byokHelpText(on);
+    saveUseByok(on);
+  });
 
   form.addEventListener("submit", async (ev) => {
     ev.preventDefault();
     const fileInput = root.querySelector<HTMLInputElement>("#bestand")!;
-    const apiKeyInput = root.querySelector<HTMLInputElement>("#api_key")!;
     const standaardInput = root.querySelector<HTMLTextAreaElement>("#standaard")!;
+    const byok = byokCheckbox.checked;
 
     const file = fileInput.files?.[0];
-    const apiKeyVal = apiKeyInput.value.trim();
     const standaardYaml = standaardInput.value.trim();
 
-    if (!file || !apiKeyVal) {
-      handlers.onError("Selecteer een bestand en vul je API-sleutel in.");
+    if (!file) {
+      handlers.onError("Selecteer een bestand.");
       return;
     }
 
@@ -81,7 +104,16 @@ export function renderUpload(
       return;
     }
 
-    saveApiKey(apiKeyVal);
+    let apiKeyVal = "";
+    if (byok) {
+      const apiKeyInput = root.querySelector<HTMLInputElement>("#api_key")!;
+      apiKeyVal = apiKeyInput.value.trim();
+      if (!apiKeyVal) {
+        handlers.onError("Vul je Mistral API-sleutel in of zet de toggle uit.");
+        return;
+      }
+      saveApiKey(apiKeyVal);
+    }
     saveStandaard(standaardYaml);
 
     submitBtn.disabled = true;
@@ -92,7 +124,9 @@ export function renderUpload(
       const tekst = await toMarkdown(file.name, buffer);
 
       const standaardMap = parseStandaardYaml(standaardYaml);
-      const chat = makeMistralChat({ apiKey: apiKeyVal });
+      const chat = byok
+        ? makeChat({ mode: "direct", apiKey: apiKeyVal })
+        : makeChat({ mode: "proxy", proxyUrl: PROXY_URL });
       const result = await detect({
         tekst,
         standaard: standaardMap,
@@ -112,7 +146,13 @@ export function renderUpload(
     } catch (err) {
       let msg = "Er ging iets mis bij het verwerken.";
       if (err instanceof LlmError) {
-        msg = `Mistral API: ${err.message}`;
+        if (err.status === 429) {
+          msg = byok
+            ? `Je eigen Mistral-account is rate-limited (429).`
+            : `Te veel verzoeken via de gedeelde proxy. Wacht een minuut, of zet "eigen API-key" aan voor onbeperkte toegang.`;
+        } else {
+          msg = err.message;
+        }
       } else if (err instanceof Error) {
         msg = err.message;
       }
@@ -121,6 +161,13 @@ export function renderUpload(
       submitBtn.textContent = "Document verwerken";
     }
   });
+}
+
+function byokHelpText(useByok: boolean): string {
+  if (useByok) {
+    return "Je documenten gaan via jouw eigen Mistral-account. Geen rate-limit aan onze kant. Eigen kosten.";
+  }
+  return "Documenten gaan via onze proxy (security-commons-nl) en daarna naar Mistral. Geen account nodig, max 20 verzoeken per minuut per IP.";
 }
 
 function stripExt(name: string): string {

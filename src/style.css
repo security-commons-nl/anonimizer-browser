@@ -170,6 +170,32 @@ button.danger {
   margin-top: 1rem;
 }
 
+/* BYOK toggle */
+
+.byok-toggle {
+  margin-top: 1.25rem;
+  padding: 0.85rem 1rem;
+  background: #f9fafb;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+}
+.inline-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.inline-toggle input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+#byok-help {
+  margin-top: 0.4rem;
+}
+
 /* Messaging */
 
 .error {

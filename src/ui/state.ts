@@ -26,6 +26,7 @@ export function emptyState(): AppState {
 }
 
 const API_KEY_STORAGE_KEY = "anonimizer.apiKey";
+const BYOK_STORAGE_KEY = "anonimizer.useByok";
 
 /** API-key blijft in sessionStorage — verdwijnt zodra de tab dichtgaat. */
 export function loadApiKey(): string {
@@ -42,6 +43,29 @@ export function saveApiKey(key: string): void {
     else sessionStorage.removeItem(API_KEY_STORAGE_KEY);
   } catch {
     // noop — sessionStorage kan disabled zijn in incognito/strict mode
+  }
+}
+
+/**
+ * Voorkeur: gebruiker wil eigen Mistral-key (true) of gedeelde proxy (false).
+ * Default false — proxy heeft de laagste drempel voor nieuwe gebruikers.
+ * Opgeslagen in localStorage want dit is een persoonlijke voorkeur die
+ * over sessies heen blijft gelden.
+ */
+export function loadUseByok(): boolean {
+  try {
+    return localStorage.getItem(BYOK_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function saveUseByok(value: boolean): void {
+  try {
+    if (value) localStorage.setItem(BYOK_STORAGE_KEY, "1");
+    else localStorage.removeItem(BYOK_STORAGE_KEY);
+  } catch {
+    // noop
   }
 }
 

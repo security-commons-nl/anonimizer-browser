@@ -1,15 +1,21 @@
 /**
  * Mistral chat-API wrapper. Browser-only — gebruikt fetch.
  *
- * De API-key wordt per call meegegeven, nooit in module-state opgeslagen.
+ * Twee paden:
+ *   - DIRECT mode: gebruiker brengt eigen Mistral API-key mee (BYOK).
+ *     Forward gaat rechtstreeks naar api.mistral.ai.
+ *   - PROXY mode: gebruiker heeft geen key. We praten met anonimizer-proxy,
+ *     die op zijn beurt naar Mistral praat met een gedeelde key.
+ *
+ * In PROXY mode stuurt de browser GEEN Authorization-header — de proxy
+ * voegt die zelf toe. Dat houdt de gedeelde key bij ons en buiten beeld
+ * van de gebruiker.
  */
 import type { LlmChat } from "./types";
 
-export interface MistralChatOptions {
-  apiKey: string;
-  model?: string;
-  baseUrl?: string;
-}
+export type ChatMode =
+  | { mode: "direct"; apiKey: string; baseUrl?: string; model?: string }
+  | { mode: "proxy"; proxyUrl: string };
 
 export class LlmError extends Error {
   readonly status: number | undefined;
@@ -20,33 +26,46 @@ export class LlmError extends Error {
   }
 }
 
-/**
- * Maak een chat-functie die naar Mistral praat.
- * Forceert JSON-output via response_format.
- */
-export function makeMistralChat(opts: MistralChatOptions): LlmChat {
-  const baseUrl = opts.baseUrl ?? "https://api.mistral.ai";
-  const model = opts.model ?? "mistral-large-latest";
+const DEFAULT_DIRECT_BASE = "https://api.mistral.ai";
+const DEFAULT_MODEL = "mistral-large-latest";
 
+export function makeChat(opts: ChatMode): LlmChat {
   return async (messages) => {
-    const resp = await fetch(`${baseUrl}/v1/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${opts.apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
+    let url: string;
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    let body: Record<string, unknown>;
+
+    if (opts.mode === "direct") {
+      const base = opts.baseUrl ?? DEFAULT_DIRECT_BASE;
+      url = `${base}/v1/chat/completions`;
+      headers["Authorization"] = `Bearer ${opts.apiKey}`;
+      body = {
+        model: opts.model ?? DEFAULT_MODEL,
         messages,
         response_format: { type: "json_object" },
         temperature: 0.1,
-      }),
+      };
+    } else {
+      // Proxy mode: alleen messages doorzetten, proxy bepaalt model + auth.
+      url = `${opts.proxyUrl}/v1/chat/completions`;
+      body = { messages };
+    }
+
+    const resp = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(body),
     });
 
     if (!resp.ok) {
       const text = await resp.text().catch(() => "");
+      let parsed: { error?: string } | null = null;
+      try {
+        parsed = JSON.parse(text);
+      } catch { /* keep raw */ }
+      const detail = parsed?.error ?? text.slice(0, 200);
       throw new LlmError(
-        `Mistral API gaf ${resp.status}: ${text.slice(0, 200)}`,
+        `LLM gaf ${resp.status}${detail ? ": " + detail : ""}`,
         resp.status,
       );
     }
@@ -54,7 +73,7 @@ export function makeMistralChat(opts: MistralChatOptions): LlmChat {
     const data = await resp.json();
     const content = data?.choices?.[0]?.message?.content;
     if (typeof content !== "string") {
-      throw new LlmError("Mistral-respons mist message.content");
+      throw new LlmError("LLM-respons mist message.content");
     }
     return content;
   };
