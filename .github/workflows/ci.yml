@@ -15,6 +15,10 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-      - run: npm ci
+      # npm install i.p.v. npm ci omdat de lockfile lokaal op Windows is
+      # gegenereerd; @emnapi/* zijn platform-conditional optional deps
+      # die daar niet, maar op Linux wel verschijnen. npm install accepteert
+      # die divergentie en updatet de lockfile non-destructief in CI.
+      - run: npm install --no-audit --no-fund
       - run: npm test
       - run: npm run build
