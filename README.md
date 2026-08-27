@@ -4,7 +4,7 @@
 
 [![Bijdragen](https://img.shields.io/badge/📝_Bijdragen-238636?style=for-the-badge)](../../issues/new/choose)&nbsp;&nbsp;&nbsp;&nbsp;[![Meepraten](https://img.shields.io/badge/💬_Meepraten-0969da?style=for-the-badge)](../../discussions)
 
-Browser-only versie van de [anonimizer](https://github.com/security-commons-nl/anonimizer). Documenten worden volledig in de browser van de gebruiker verwerkt — geen server, geen upload, geen logging. Alleen de tekst voor entiteit-detectie wordt naar Mistral gestuurd (rechtstreeks vanuit de browser, met de eigen API-key van de gebruiker).
+Browser-only versie van de [anonimizer](https://github.com/security-commons-nl/anonimizer-local). Documenten worden volledig in de browser van de gebruiker verwerkt — geen server, geen upload, geen logging. Alleen de tekst voor entiteit-detectie wordt naar Mistral gestuurd (rechtstreeks vanuit de browser, met de eigen API-key van de gebruiker).
 
 **Online:** https://security-commons-nl.github.io/anonimizer-browser/
 
@@ -109,7 +109,7 @@ src/
   main.ts                   — boot + screen-routing
 ```
 
-De drie kernmodules (`patronen.ts`, `replacer.ts`, `detector.ts`) zijn directe ports van de Python-CLI in [`security-commons-nl/anonimizer`](https://github.com/security-commons-nl/anonimizer). Bij wijzigingen in de Python-versie: zorg dat de TypeScript-versie meegaat.
+De drie kernmodules (`patronen.ts`, `replacer.ts`, `detector.ts`) zijn directe ports van de Python-CLI in [`security-commons-nl/anonimizer-local`](https://github.com/security-commons-nl/anonimizer-local). Bij wijzigingen in de Python-versie: zorg dat de TypeScript-versie meegaat.
 
 ---
 
