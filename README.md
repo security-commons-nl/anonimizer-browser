@@ -109,7 +109,28 @@ src/
   main.ts                   — boot + screen-routing
 ```
 
-De drie kernmodules (`patronen.ts`, `replacer.ts`, `detector.ts`) zijn directe ports van de Python-CLI in [`security-commons-nl/anonimizer-local`](https://github.com/security-commons-nl/anonimizer-local). Bij wijzigingen in de Python-versie: zorg dat de TypeScript-versie meegaat.
+De drie kernmodules (`patronen.ts`, `replacer.ts`, `detector.ts`) zijn directe ports van de Python-CLI in [`security-commons-nl/anonimizer-local`](https://github.com/security-commons-nl/anonimizer-local). Of de detectiekern nog gelijk loopt, is geen belofte maar een test: zie hieronder.
+
+### Gedeelde PII-fixture
+
+`src/lib/fixtures/pii-patronen.json` bevat de gedeelde testgevallen voor PII-detectie (BSN met elfproef, IBAN, e-mail, postcode, telefoon, KVK, FG-nummer, IPv4 en ruis). Dezelfde fixture draait in drie repo's:
+
+| Repo | Rol | Bestand |
+|------|-----|---------|
+| anonimizer-local | **canoniek** (bron van waarheid) | `tests/fixtures/pii-patronen.json` |
+| anonimizer-browser | kopie + hash | `src/lib/fixtures/pii-patronen.json` + `.sha256` |
+| publicatiescan | kopie + hash | `tests/fixtures/pii-patronen.json` + `.sha256` |
+
+`src/lib/fixture-gedeeld.test.ts` haalt elk geval door `patronen.ts` en controleert daarnaast dat de lokale kopie byte-identiek is aan de vastgelegde sha256. Afwijkingen van de norm staan expliciet in `BEKENDE_AFWIJKINGEN` in die test; de fixture zelf wordt niet versoepeld.
+
+**Een geval toevoegen of wijzigen:**
+
+1. Bewerk de canonieke fixture in `anonimizer-local/tests/fixtures/pii-patronen.json` en draai daar `pytest tests/`.
+2. Kopieer het bestand ongewijzigd naar `anonimizer-browser/src/lib/fixtures/` en `publicatiescan/tests/fixtures/`.
+3. Werk in beide kopie-repo's de hash bij (vanuit de map met de kopie): `sha256sum pii-patronen.json > pii-patronen.sha256`.
+4. Draai de suites in alle drie de repo's. Een implementatie die de norm niet haalt, krijgt een regel in `BEKENDE_AFWIJKINGEN` met de reden, nooit een versoepeling van de fixture.
+
+Alle gegevens in de fixture zijn fictief (testnummers, voorbeelddomeinen, verzonnen plaatsen); houd dat zo.
 
 ---
 
