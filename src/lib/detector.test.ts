@@ -54,18 +54,18 @@ describe("ALLOWLIST", () => {
 describe("detect — laag 1 standaard", () => {
   it("past standaard-vervangingen toe als ze in de tekst staan", async () => {
     const result = await detect({
-      tekst: "De gemeente Leiden werkt aan dit project.",
-      standaard: { Leiden: "VOORBEELDGEMEENTE" },
+      tekst: "De gemeente Duinstad werkt aan dit project.",
+      standaard: { Duinstad: "VOORBEELDGEMEENTE" },
       chat: makeChat([]),
     });
-    expect(result.autoMapping["Leiden"]).toBe("VOORBEELDGEMEENTE");
-    expect(result.bron["Leiden"]).toBe("standaard");
+    expect(result.autoMapping["Duinstad"]).toBe("VOORBEELDGEMEENTE");
+    expect(result.bron["Duinstad"]).toBe("standaard");
   });
 
   it("past standaard NIET toe als de tekst hem niet bevat", async () => {
     const result = await detect({
       tekst: "Geen gemeente in deze tekst.",
-      standaard: { Leiden: "VOORBEELDGEMEENTE" },
+      standaard: { Duinstad: "VOORBEELDGEMEENTE" },
       chat: makeChat([]),
     });
     expect(result.autoMapping["Leiden"]).toBeUndefined();
@@ -86,15 +86,15 @@ describe("detect — laag 1.5 patronen", () => {
 describe("detect — laag 2 memory", () => {
   it("past memory-entries toe als ze in de tekst staan", async () => {
     const memory: Entiteit[] = [
-      { tekst: "Bas Stevens", suggestie: "de CISO", categorie: "persoon" },
+      { tekst: "Kees Pieters", suggestie: "de CISO", categorie: "persoon" },
     ];
     const result = await detect({
-      tekst: "Goedgekeurd door Bas Stevens.",
+      tekst: "Goedgekeurd door Kees Pieters.",
       memory,
       chat: makeChat([]),
     });
-    expect(result.autoMapping["Bas Stevens"]).toBe("de CISO");
-    expect(result.bron["Bas Stevens"]).toBe("geheugen");
+    expect(result.autoMapping["Kees Pieters"]).toBe("de CISO");
+    expect(result.bron["Kees Pieters"]).toBe("geheugen");
   });
 });
 
@@ -135,12 +135,12 @@ describe("detect — laag 3 LLM", () => {
 
   it("filtert LLM-entities die al door eerdere lagen gedekt zijn", async () => {
     const result = await detect({
-      tekst: "Bas Stevens en Jan Jansen werkten samen.",
+      tekst: "Kees Pieters en Jan Jansen werkten samen.",
       memory: [
-        { tekst: "Bas Stevens", suggestie: "de CISO", categorie: "persoon" },
+        { tekst: "Kees Pieters", suggestie: "de CISO", categorie: "persoon" },
       ],
       chat: makeChat([
-        { tekst: "Bas Stevens", suggestie: "PERSOON_A", categorie: "persoon" },
+        { tekst: "Kees Pieters", suggestie: "PERSOON_A", categorie: "persoon" },
         { tekst: "Jan Jansen", suggestie: "PERSOON_B", categorie: "persoon" },
       ]),
     });

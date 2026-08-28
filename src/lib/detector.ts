@@ -87,7 +87,7 @@ Geef je antwoord als JSON met deze structuur:
 }
 
 Regels voor suggesties:
-- Gebruik de context: "Bas Stevens (CISO)" → suggestie "de CISO"
+- Gebruik de context: "Kees Pieters (CISO)" → suggestie "de CISO"
 - Wees consistent: dezelfde entiteit krijgt dezelfde suggestie
 - Wees specifiek genoeg: "de afdeling" of "de leverancier" is beter dan "[verwijderd]"
 - E-mailadressen → "[e-mailadres verwijderd]"

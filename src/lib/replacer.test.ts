@@ -65,7 +65,7 @@ describe("apply — word-boundary", () => {
   });
 
   it("matcht 'Leiden' WEL als losse woord", () => {
-    const r = apply("In de gemeente Leiden gebeurt veel", { Leiden: "VOORBEELDGEMEENTE" });
+    const r = apply("In de gemeente Duinstad gebeurt veel", { Duinstad: "VOORBEELDGEMEENTE" });
     expect(r).toBe("In de gemeente VOORBEELDGEMEENTE gebeurt veel");
   });
 

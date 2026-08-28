@@ -3,7 +3,7 @@
  *
  * Word-boundary logica: elke key waarvan het eerste én laatste teken een
  * woord-karakter is (letter/cijfer/_) krijgt \b-wrapping. Dat voorkomt
- * dat 'beveiliging' matcht binnen 'informatiebeveiliging' of 'Leiden'
+ * dat 'beveiliging' matcht binnen 'informatiebeveiliging' of 'leiden'
  * binnen 'begeleiden'. Keys die beginnen of eindigen op niet-woord-tekens
  * (bv. '(C)ISO', 'IB-') krijgen geen \b omdat dat regex-semantisch niet
  * betrouwbaar is aan de grens.
@@ -55,7 +55,7 @@ export function buildMapping(approved: Entiteit[]): Mapping {
  * Pas alle vervangingen toe op de tekst.
  *
  * - Langere matches eerst, om partiële vervangingen te voorkomen.
- * - Case-insensitive: 'Leidse regio' matcht 'Leidse Regio'.
+ * - Case-insensitive: 'Duinse regio' matcht 'Duinse Regio'.
  * - Word-boundary voor keys die op woord-karakters beginnen én eindigen.
  * - Post-processing collapst dubbele lidwoorden en placeholder-lijsten.
  */
