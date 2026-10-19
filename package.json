@@ -14,15 +14,15 @@
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.11",
-    "happy-dom": "^20.14.5",
+    "happy-dom": "^20.14.6",
     "typescript": "~7.0.2",
-    "vite": "^8.3.0",
+    "vite": "^8.3.4",
     "vitest": "^4.1.6"
   },
   "dependencies": {
     "fflate": "^0.8.3",
     "jszip": "^3.10.2",
-    "mammoth": "^1.12.3",
-    "pdfjs-dist": "^6.3.289"
+    "mammoth": "^1.13.0",
+    "pdfjs-dist": "^6.4.299"
   }
 }
