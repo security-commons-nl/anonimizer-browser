@@ -78,6 +78,11 @@ npm run coverage
 
 Op het moment van schrijven: **82 tests** dekken patronen, replacer, detector, converters (HTML/PPTX/XLSX) en het YAML-parsertje.
 
+
+Onderaan de pagina staan de versie (gelijk aan `version` in `package.json`), een peildatum, de status en een link naar
+de tests in CI: de lat van het redactiestatuut (C5). `tests/lat.test.ts` houdt de versie op de pagina gelijk aan
+`package.json`; verhoog je de versie, pas dan ook de regel in `index.html` en de peildatum aan.
+
 ## Bouwen voor productie
 ```bash
 npm run build
